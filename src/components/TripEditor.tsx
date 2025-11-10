@@ -127,7 +127,6 @@ export function TripEditor({ tripId, onBack, onBackToLanding }: TripEditorProps)
     ) + 1;
 
     const activitiesPerDay = 4;
-    const totalActivitiesNeeded = totalDays * activitiesPerDay;
 
     try {
       const allActivitiesData = await generateActivities({
@@ -144,14 +143,10 @@ export function TripEditor({ tripId, onBack, onBackToLanding }: TripEditorProps)
         return;
       }
 
-      const shuffledActivities = [...allActivitiesData].sort(() => Math.random() - 0.5);
-
-      const uniqueActivities = shuffledActivities.filter(
+      const uniqueActivities = allActivitiesData.filter(
         (activity, index, self) =>
           index === self.findIndex((a) => a.title === activity.title)
       );
-
-      const timeSlots = ['09:00', '11:30', '14:00', '18:00'];
 
       for (let i = 0; i < insertedDays.length; i++) {
         const day = insertedDays[i];
@@ -159,25 +154,19 @@ export function TripEditor({ tripId, onBack, onBackToLanding }: TripEditorProps)
         const dayActivities = uniqueActivities.slice(startIndex, startIndex + activitiesPerDay);
 
         if (dayActivities.length > 0) {
-          const activitiesToInsert = dayActivities.map((activity, index) => {
-            const startTime = timeSlots[index] || '09:00';
-            const duration = activity.category === 'Dining' ? 90 : 120;
-            const endTime = addMinutes(startTime, duration);
-
-            return {
-              day_id: day.id,
-              title: activity.title,
-              start_time: startTime,
-              end_time: endTime,
-              duration_minutes: duration,
-              category: activity.category,
-              notes: activity.notes,
-              position: index,
-              location: activity.location || null,
-              location_lat: activity.location_lat || null,
-              location_lon: activity.location_lon || null,
-            };
-          });
+          const activitiesToInsert = dayActivities.map((activity, index) => ({
+            day_id: day.id,
+            title: activity.title,
+            start_time: activity.start_time || null,
+            end_time: activity.end_time || null,
+            duration_minutes: activity.duration_minutes || null,
+            category: activity.category,
+            notes: activity.notes,
+            position: index,
+            location: activity.location || null,
+            location_lat: activity.location_lat || null,
+            location_lon: activity.location_lon || null,
+          }));
 
           await supabase.from('activities').insert(activitiesToInsert);
         }

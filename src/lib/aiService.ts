@@ -116,7 +116,8 @@ function categorizePlaces(
   interests: string[],
   trip_type: string
 ): ActivitySuggestion[] {
-  const suggestions: ActivitySuggestion[] = [];
+  const matchedSuggestions: ActivitySuggestion[] = [];
+  const otherSuggestions: ActivitySuggestion[] = [];
 
   const interestKeywords: { [key: string]: string[] } = {
     food: ['restaurant', 'cafe', 'market', 'food', 'cuisine', 'dining', 'bakery', 'bistro', 'eatery'],
@@ -147,25 +148,29 @@ function categorizePlaces(
       }
     }
 
+    const suggestion = {
+      title: `Visit ${place.title}`,
+      category,
+      notes: place.description,
+      location: place.title,
+      location_lat: place.coordinates?.lat,
+      location_lon: place.coordinates?.lon,
+    };
+
     if (matchScore > 0 || interests.length === 0) {
-      suggestions.push({
-        title: `Visit ${place.title}`,
-        category,
-        notes: place.description,
-        location: place.title,
-        location_lat: place.coordinates?.lat,
-        location_lon: place.coordinates?.lon,
-      });
+      matchedSuggestions.push(suggestion);
+    } else {
+      otherSuggestions.push(suggestion);
     }
   }
 
-  return suggestions;
+  return [...matchedSuggestions, ...otherSuggestions];
 }
 
 export async function generateActivities(
   request: GenerateActivitiesRequest
 ): Promise<ActivitySuggestion[]> {
-  const { destination, trip_type, interests, pace, startingLocation, startingCoords } = request;
+  const { destination, trip_type, interests, pace, startingLocation, startingCoords, total_days } = request;
 
   const activitiesPerDay = {
     relaxed: 3,
@@ -191,8 +196,10 @@ export async function generateActivities(
 
   const categorized = categorizePlaces(nearbyPlaces, interests, trip_type);
 
+  let allActivities: ActivitySuggestion[] = [];
+
   if (categorized.length === 0) {
-    return nearbyPlaces.slice(0, numActivities).map((place) => ({
+    allActivities = nearbyPlaces.map((place) => ({
       title: `Visit ${place.title}`,
       category: 'Sightseeing',
       notes: place.description,
@@ -200,24 +207,27 @@ export async function generateActivities(
       location_lat: place.coordinates?.lat,
       location_lon: place.coordinates?.lon,
     }));
+  } else {
+    allActivities = categorized;
   }
 
-  const suggestions: ActivitySuggestion[] = [];
-  const numToGenerate = Math.min(numActivities, categorized.length);
+  const totalNeeded = total_days ? total_days * numActivities : numActivities;
 
-  for (let i = 0; i < numToGenerate; i++) {
-    const activity = categorized[i];
-    const startTime = slots[i] || '09:00';
+  allActivities = allActivities.slice(0, totalNeeded);
+
+  const suggestions: ActivitySuggestion[] = allActivities.map((activity, i) => {
+    const slotIndex = i % slots.length;
+    const startTime = slots[slotIndex] || '09:00';
     const duration = activity.category === 'Dining' ? 90 : 120;
     const endTime = addMinutes(startTime, duration);
 
-    suggestions.push({
+    return {
       ...activity,
       start_time: startTime,
       end_time: endTime,
       duration_minutes: duration,
-    });
-  }
+    };
+  });
 
   if (startingLocation && startingCoords) {
     const infoNote = ` Near ${startingLocation}.`;
