@@ -126,14 +126,14 @@ export function TripEditor({ tripId, onBack, onBackToLanding }: TripEditorProps)
         (1000 * 60 * 60 * 24)
     ) + 1;
 
-    const activitiesPerDay = 4;
+    const activitiesPerDay = 3;
 
     try {
       const allActivitiesData = await generateActivities({
         destination: trip.primary_destination,
         trip_type: trip.trip_type,
         interests: ['culture', 'food', 'nature'],
-        pace: 'balanced',
+        pace: 'relaxed',
         day_index: 1,
         total_days: totalDays,
       });
