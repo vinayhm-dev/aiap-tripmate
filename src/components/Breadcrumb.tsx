@@ -1,4 +1,4 @@
-import { ChevronRight, Home } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
 interface BreadcrumbItem {
   label: string;
