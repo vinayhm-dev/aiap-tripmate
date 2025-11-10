@@ -74,6 +74,10 @@ function App() {
     setSelectedTripId('');
   };
 
+  const handleBackToLanding = () => {
+    setPage('landing');
+  };
+
   if (page === 'share' && shareSlug) {
     return <SharePage slug={shareSlug} />;
   }
@@ -90,7 +94,7 @@ function App() {
         </div>
       );
     }
-    return <Dashboard userId={userId} onOpenTrip={handleOpenTrip} />;
+    return <Dashboard userId={userId} onOpenTrip={handleOpenTrip} onBackToLanding={handleBackToLanding} />;
   }
 
   if (page === 'trip' && selectedTripId) {
@@ -101,7 +105,7 @@ function App() {
         </div>
       );
     }
-    return <TripEditor tripId={selectedTripId} onBack={handleBackToDashboard} />;
+    return <TripEditor tripId={selectedTripId} onBack={handleBackToDashboard} onBackToLanding={handleBackToLanding} />;
   }
 
   return null;

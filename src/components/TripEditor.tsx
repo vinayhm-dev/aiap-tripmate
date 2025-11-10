@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Calendar, MapPin, Sparkles, Plus, ChevronDown, ChevronUp, Backpack, Share2, Printer, Check, Copy } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Sparkles, Plus, ChevronDown, ChevronUp, Backpack, Share2, Printer, Check, Copy, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
 import { ActivityModal } from './ActivityModal';
@@ -7,6 +7,7 @@ import { AISuggestionsModal } from './AISuggestionsModal';
 import { PackingListModal } from './PackingListModal';
 import { Toast } from './Toast';
 import { trackEvent } from '../lib/analytics';
+import { Breadcrumb } from './Breadcrumb';
 
 type Trip = Database['public']['Tables']['trips']['Row'];
 type Day = Database['public']['Tables']['days']['Row'];
@@ -15,13 +16,14 @@ type Activity = Database['public']['Tables']['activities']['Row'];
 interface TripEditorProps {
   tripId: string;
   onBack: () => void;
+  onBackToLanding: () => void;
 }
 
 interface DayWithActivities extends Day {
   activities: Activity[];
 }
 
-export function TripEditor({ tripId, onBack }: TripEditorProps) {
+export function TripEditor({ tripId, onBack, onBackToLanding }: TripEditorProps) {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [days, setDays] = useState<DayWithActivities[]>([]);
   const [loading, setLoading] = useState(true);
@@ -236,13 +238,13 @@ export function TripEditor({ tripId, onBack }: TripEditorProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 font-semibold transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Back to Dashboard
-        </button>
+        <Breadcrumb
+          items={[
+            { label: 'Home', onClick: onBackToLanding },
+            { label: 'My Trips', onClick: onBack },
+            { label: trip?.title || 'Trip' },
+          ]}
+        />
 
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
           <div className="flex items-start justify-between mb-4">

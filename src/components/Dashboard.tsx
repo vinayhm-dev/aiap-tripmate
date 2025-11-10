@@ -5,15 +5,17 @@ import type { Database } from '../lib/database.types';
 import { NewTripModal } from './NewTripModal';
 import { Toast } from './Toast';
 import { trackEvent } from '../lib/analytics';
+import { Breadcrumb } from './Breadcrumb';
 
 type Trip = Database['public']['Tables']['trips']['Row'];
 
 interface DashboardProps {
   userId: string;
   onOpenTrip: (tripId: string) => void;
+  onBackToLanding: () => void;
 }
 
-export function Dashboard({ userId, onOpenTrip }: DashboardProps) {
+export function Dashboard({ userId, onOpenTrip, onBackToLanding }: DashboardProps) {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewTripModal, setShowNewTripModal] = useState(false);
@@ -145,6 +147,12 @@ export function Dashboard({ userId, onOpenTrip }: DashboardProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
+        <Breadcrumb
+          items={[
+            { label: 'Home', onClick: onBackToLanding },
+            { label: 'My Trips' },
+          ]}
+        />
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">

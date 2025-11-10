@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Calendar, MapPin, Plane } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
+import { Breadcrumb } from './Breadcrumb';
 
 type Trip = Database['public']['Tables']['trips']['Row'];
 type Day = Database['public']['Tables']['days']['Row'];
@@ -129,16 +130,12 @@ export function SharePage({ slug }: SharePageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-center mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
-              <Plane className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Shared Trip Itinerary</p>
-            </div>
-          </div>
-        </div>
+        <Breadcrumb
+          items={[
+            { label: 'Shared Trip' },
+            { label: trip?.title || 'Loading...' },
+          ]}
+        />
 
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">{trip.title}</h1>
