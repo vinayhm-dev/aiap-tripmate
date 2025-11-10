@@ -12,10 +12,10 @@ function App() {
   const [userId, setUserId] = useState<string>('');
   const [selectedTripId, setSelectedTripId] = useState<string>('');
   const [shareSlug, setShareSlug] = useState<string>('');
+  const [isInitializingUser, setIsInitializingUser] = useState(false);
 
   useEffect(() => {
     checkForShareLink();
-    initializeUser();
   }, []);
 
   const checkForShareLink = () => {
@@ -29,6 +29,9 @@ function App() {
   };
 
   const initializeUser = async () => {
+    if (userId || isInitializingUser) return;
+
+    setIsInitializingUser(true);
     const { data: users } = await supabase
       .from('users')
       .select('*')
@@ -51,9 +54,13 @@ function App() {
         setUserId(newUser.id);
       }
     }
+    setIsInitializingUser(false);
   };
 
-  const handleGetStarted = () => {
+  const handleGetStarted = async () => {
+    if (!userId) {
+      await initializeUser();
+    }
     setPage('dashboard');
   };
 
@@ -67,14 +74,6 @@ function App() {
     setSelectedTripId('');
   };
 
-  if (!userId) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
-      </div>
-    );
-  }
-
   if (page === 'share' && shareSlug) {
     return <SharePage slug={shareSlug} />;
   }
@@ -84,10 +83,24 @@ function App() {
   }
 
   if (page === 'dashboard') {
+    if (!userId) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
+        </div>
+      );
+    }
     return <Dashboard userId={userId} onOpenTrip={handleOpenTrip} />;
   }
 
   if (page === 'trip' && selectedTripId) {
+    if (!userId) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
+        </div>
+      );
+    }
     return <TripEditor tripId={selectedTripId} onBack={handleBackToDashboard} />;
   }
 
