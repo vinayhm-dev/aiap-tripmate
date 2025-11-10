@@ -1,0 +1,80 @@
+import { useState, useEffect } from 'react';
+import { LandingPage } from './components/LandingPage';
+import { Dashboard } from './components/Dashboard';
+import { TripEditor } from './components/TripEditor';
+import { supabase } from './lib/supabase';
+
+type Page = 'landing' | 'dashboard' | 'trip';
+
+function App() {
+  const [page, setPage] = useState<Page>('landing');
+  const [userId, setUserId] = useState<string>('');
+  const [selectedTripId, setSelectedTripId] = useState<string>('');
+
+  useEffect(() => {
+    initializeUser();
+  }, []);
+
+  const initializeUser = async () => {
+    const { data: users } = await supabase
+      .from('users')
+      .select('*')
+      .limit(1)
+      .maybeSingle();
+
+    if (users) {
+      setUserId(users.id);
+    } else {
+      const { data: newUser } = await supabase
+        .from('users')
+        .insert({
+          email: 'demo@smarttrip.com',
+          name: 'Demo User',
+        })
+        .select()
+        .single();
+
+      if (newUser) {
+        setUserId(newUser.id);
+      }
+    }
+  };
+
+  const handleGetStarted = () => {
+    setPage('dashboard');
+  };
+
+  const handleOpenTrip = (tripId: string) => {
+    setSelectedTripId(tripId);
+    setPage('trip');
+  };
+
+  const handleBackToDashboard = () => {
+    setPage('dashboard');
+    setSelectedTripId('');
+  };
+
+  if (!userId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (page === 'landing') {
+    return <LandingPage onGetStarted={handleGetStarted} />;
+  }
+
+  if (page === 'dashboard') {
+    return <Dashboard userId={userId} onOpenTrip={handleOpenTrip} />;
+  }
+
+  if (page === 'trip' && selectedTripId) {
+    return <TripEditor tripId={selectedTripId} onBack={handleBackToDashboard} />;
+  }
+
+  return null;
+}
+
+export default App;
