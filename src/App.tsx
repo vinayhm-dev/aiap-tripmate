@@ -2,18 +2,31 @@ import { useState, useEffect } from 'react';
 import { LandingPage } from './components/LandingPage';
 import { Dashboard } from './components/Dashboard';
 import { TripEditor } from './components/TripEditor';
+import { SharePage } from './components/SharePage';
 import { supabase } from './lib/supabase';
 
-type Page = 'landing' | 'dashboard' | 'trip';
+type Page = 'landing' | 'dashboard' | 'trip' | 'share';
 
 function App() {
   const [page, setPage] = useState<Page>('landing');
   const [userId, setUserId] = useState<string>('');
   const [selectedTripId, setSelectedTripId] = useState<string>('');
+  const [shareSlug, setShareSlug] = useState<string>('');
 
   useEffect(() => {
+    checkForShareLink();
     initializeUser();
   }, []);
+
+  const checkForShareLink = () => {
+    const path = window.location.pathname;
+    const shareMatch = path.match(/^\/s\/([a-z0-9]+)$/);
+
+    if (shareMatch) {
+      setShareSlug(shareMatch[1]);
+      setPage('share');
+    }
+  };
 
   const initializeUser = async () => {
     const { data: users } = await supabase
@@ -60,6 +73,10 @@ function App() {
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
       </div>
     );
+  }
+
+  if (page === 'share' && shareSlug) {
+    return <SharePage slug={shareSlug} />;
   }
 
   if (page === 'landing') {

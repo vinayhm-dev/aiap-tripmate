@@ -151,6 +151,29 @@ export interface Database {
           created_at?: string | null
         }
       }
+      share_links: {
+        Row: {
+          id: string
+          trip_id: string
+          slug: string
+          created_at: string | null
+          expires_at: string | null
+        }
+        Insert: {
+          id?: string
+          trip_id: string
+          slug: string
+          created_at?: string | null
+          expires_at?: string | null
+        }
+        Update: {
+          id?: string
+          trip_id?: string
+          slug?: string
+          created_at?: string | null
+          expires_at?: string | null
+        }
+      }
     }
   }
 }

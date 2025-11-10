@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Calendar, MapPin, Sparkles, Plus, ChevronDown, ChevronUp, Backpack } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Sparkles, Plus, ChevronDown, ChevronUp, Backpack, Share2, Printer, Check, Copy } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
 import { ActivityModal } from './ActivityModal';
@@ -31,6 +31,9 @@ export function TripEditor({ tripId, onBack }: TripEditorProps) {
   } | null>(null);
   const [showAISuggestions, setShowAISuggestions] = useState(false);
   const [showPackingList, setShowPackingList] = useState(false);
+  const [shareLink, setShareLink] = useState<string>('');
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     loadTrip();
@@ -149,6 +152,54 @@ export function TripEditor({ tripId, onBack }: TripEditorProps) {
     await loadDays();
   };
 
+  const generateSlug = () => {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let slug = '';
+    for (let i = 0; i < 8; i++) {
+      slug += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return slug;
+  };
+
+  const handleShare = async () => {
+    const { data: existingLink } = await supabase
+      .from('share_links')
+      .select('slug')
+      .eq('trip_id', tripId)
+      .maybeSingle();
+
+    if (existingLink) {
+      const url = `${window.location.origin}/s/${existingLink.slug}`;
+      setShareLink(url);
+      setShowShareModal(true);
+      return;
+    }
+
+    const slug = generateSlug();
+    const { error } = await supabase
+      .from('share_links')
+      .insert({
+        trip_id: tripId,
+        slug,
+      });
+
+    if (!error) {
+      const url = `${window.location.origin}/s/${slug}`;
+      setShareLink(url);
+      setShowShareModal(true);
+    }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center">
@@ -188,7 +239,7 @@ export function TripEditor({ tripId, onBack }: TripEditorProps) {
           <div className="flex items-start justify-between mb-4">
             <h1 className="text-4xl font-bold text-gray-900">{trip.title}</h1>
             {days.length > 0 && (
-              <div className="flex gap-3">
+              <div className="flex gap-3 flex-wrap">
                 <button
                   onClick={() => setShowAISuggestions(true)}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2"
@@ -202,6 +253,20 @@ export function TripEditor({ tripId, onBack }: TripEditorProps) {
                 >
                   <Backpack className="w-5 h-5" />
                   Packing List
+                </button>
+                <button
+                  onClick={handleShare}
+                  className="bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2"
+                >
+                  <Share2 className="w-5 h-5" />
+                  Share
+                </button>
+                <button
+                  onClick={handlePrint}
+                  className="bg-gray-700 hover:bg-gray-800 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 print:hidden"
+                >
+                  <Printer className="w-5 h-5" />
+                  Print
                 </button>
               </div>
             )}
@@ -364,6 +429,51 @@ export function TripEditor({ tripId, onBack }: TripEditorProps) {
           trip={trip}
           onClose={() => setShowPackingList(false)}
         />
+      )}
+
+      {showShareModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 print:hidden">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-gray-900">Share Your Trip</h3>
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-gray-600 mb-4">
+              Anyone with this link can view your trip itinerary
+            </p>
+
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={shareLink}
+                readOnly
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm"
+              />
+              <button
+                onClick={handleCopyLink}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    Copy
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
