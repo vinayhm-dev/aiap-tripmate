@@ -36,20 +36,44 @@ export function NewTripModal({ userId, onClose, onSuccess }: NewTripModalProps) 
 
     const lower = text.toLowerCase();
 
-    const cityPatterns = [
-      /(?:to|in|visit|visiting)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:,\s*[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)*(?:\s+and\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)?)/g,
-      /([A-Z][a-z]+(?:,\s*[A-Z][a-z]+)*(?:\s+and\s+[A-Z][a-z]+)?)/g
-    ];
-
     let cities: string[] = [];
-    for (const pattern of cityPatterns) {
-      const matches = text.match(pattern);
-      if (matches && matches.length > 0) {
-        const citiesText = matches[0].replace(/^(to|in|visit|visiting)\s+/i, '');
-        cities = citiesText.split(/,\s*|\s+and\s+/).filter(c => c.trim().length > 0);
-        break;
+
+    const locationKeywords = ['to', 'in', 'visit', 'visiting', 'trip to', 'going to', 'travel to', 'traveling to'];
+    let foundLocations = false;
+
+    for (const keyword of locationKeywords) {
+      const keywordIndex = lower.indexOf(keyword);
+      if (keywordIndex !== -1) {
+        const afterKeyword = text.substring(keywordIndex + keyword.length).trim();
+        const locationMatch = afterKeyword.match(/^([A-Z][A-Za-z\s'-]+?)(?:\s+(?:from|for|on|starting|and|,|$))/);
+
+        if (locationMatch) {
+          const locationsText = locationMatch[1].trim();
+          cities = locationsText.split(/\s+and\s+|,\s*/).map(c => c.trim()).filter(c => c.length > 0);
+          foundLocations = true;
+          break;
+        }
       }
     }
+
+    if (!foundLocations) {
+      const capitalizedWords = text.match(/\b[A-Z][A-Za-z'-]+(?:\s+[A-Z][A-Za-z'-]+)*\b/g);
+      if (capitalizedWords && capitalizedWords.length > 0) {
+        const commonWords = ['I', 'A', 'The', 'My', 'We', 'Our', 'This', 'That', 'Planning', 'Trip', 'Travel', 'Visit', 'Business', 'Adventure', 'Cultural', 'Family', 'Leisure', 'Day', 'Days', 'Week', 'Weeks', 'Month', 'Months', 'Year', 'Starting', 'From', 'To', 'For', 'In', 'On', 'At'];
+        const potentialCities = capitalizedWords.filter(word =>
+          !commonWords.includes(word) &&
+          word.length > 2 &&
+          !word.match(/^\d/)
+        );
+
+        if (potentialCities.length > 0) {
+          cities = potentialCities;
+          foundLocations = true;
+        }
+      }
+    }
+
+    cities = cities.map(c => c.replace(/\s+and\s*$|,\s*$/i, '').trim()).filter(c => c.length > 0);
 
     const dateMatches = text.match(/\d{4}-\d{2}-\d{2}/g) || [];
     const startDate = dateMatches[0];
@@ -222,7 +246,7 @@ export function NewTripModal({ userId, onClose, onSuccess }: NewTripModalProps) 
                   onChange={(e) => setPrompt(e.target.value)}
                   rows={6}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                  placeholder="E.g., I want to visit Paris and Rome from 2025-12-15 to 2025-12-25 for a cultural trip\n\nOr: Planning a 7 day adventure trip to Tokyo starting 2025-11-20"
+                  placeholder="Examples:&#10;• Trip to Paris and Rome from 2025-12-15 to 2025-12-25&#10;• Visit New York for 7 days starting 2025-11-20&#10;• Going to Tokyo, Singapore and Bangkok for cultural trip&#10;• Business travel to London from 2025-12-01 to 2025-12-05"
                 />
               </div>
 
@@ -232,9 +256,9 @@ export function NewTripModal({ userId, onClose, onSuccess }: NewTripModalProps) 
                   <div className="text-sm text-blue-800">
                     <p className="font-semibold mb-1">Tips:</p>
                     <ul className="list-disc list-inside space-y-1 text-blue-700">
-                      <li>Mention cities (we'll create separate plans for multiple cities)</li>
-                      <li>Include dates (YYYY-MM-DD format) or trip duration</li>
-                      <li>Add keywords like adventure, cultural, family, etc.</li>
+                      <li>Mention city or country names (we create separate plans for multiple destinations)</li>
+                      <li>Include dates (YYYY-MM-DD) or duration in days</li>
+                      <li>Optionally add trip type: business, adventure, cultural, family, leisure</li>
                     </ul>
                   </div>
                 </div>
