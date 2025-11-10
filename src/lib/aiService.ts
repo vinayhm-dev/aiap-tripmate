@@ -83,7 +83,7 @@ async function getNearbyPlaces(
     if (data.query && data.query.geosearch) {
       const places: WikipediaPlace[] = [];
 
-      for (const place of data.query.geosearch.slice(0, 30)) {
+      for (const place of data.query.geosearch) {
         try {
           const detailResponse = await fetch(
             `https://en.wikipedia.org/w/api.php?action=query&pageids=${place.pageid}&prop=extracts|coordinates&exintro=true&explaintext=true&format=json&origin=*`

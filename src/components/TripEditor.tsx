@@ -126,37 +126,64 @@ export function TripEditor({ tripId, onBack, onBackToLanding }: TripEditorProps)
         (1000 * 60 * 60 * 24)
     ) + 1;
 
-    for (const day of insertedDays || []) {
-      try {
-        const activitiesData = await generateActivities({
-          destination: trip.primary_destination,
-          trip_type: trip.trip_type,
-          interests: ['culture', 'food'],
-          pace: 'balanced',
-          day_index: day.day_index,
-          total_days: totalDays,
-        });
+    const activitiesPerDay = 4;
+    const totalActivitiesNeeded = totalDays * activitiesPerDay;
 
-        if (activitiesData.length > 0) {
-          const activitiesToInsert = activitiesData.map((activity, index) => ({
-            day_id: day.id,
-            title: activity.title,
-            start_time: activity.start_time || null,
-            end_time: activity.end_time || null,
-            duration_minutes: activity.duration_minutes || null,
-            category: activity.category,
-            notes: activity.notes,
-            position: index,
-            location: activity.location || null,
-            location_lat: activity.location_lat || null,
-            location_lon: activity.location_lon || null,
-          }));
+    try {
+      const allActivitiesData = await generateActivities({
+        destination: trip.primary_destination,
+        trip_type: trip.trip_type,
+        interests: ['culture', 'food', 'nature'],
+        pace: 'balanced',
+        day_index: 1,
+        total_days: totalDays,
+      });
+
+      if (allActivitiesData.length === 0) {
+        setGenerating(false);
+        return;
+      }
+
+      const shuffledActivities = [...allActivitiesData].sort(() => Math.random() - 0.5);
+
+      const uniqueActivities = shuffledActivities.filter(
+        (activity, index, self) =>
+          index === self.findIndex((a) => a.title === activity.title)
+      );
+
+      const timeSlots = ['09:00', '11:30', '14:00', '18:00'];
+
+      for (let i = 0; i < insertedDays.length; i++) {
+        const day = insertedDays[i];
+        const startIndex = i * activitiesPerDay;
+        const dayActivities = uniqueActivities.slice(startIndex, startIndex + activitiesPerDay);
+
+        if (dayActivities.length > 0) {
+          const activitiesToInsert = dayActivities.map((activity, index) => {
+            const startTime = timeSlots[index] || '09:00';
+            const duration = activity.category === 'Dining' ? 90 : 120;
+            const endTime = addMinutes(startTime, duration);
+
+            return {
+              day_id: day.id,
+              title: activity.title,
+              start_time: startTime,
+              end_time: endTime,
+              duration_minutes: duration,
+              category: activity.category,
+              notes: activity.notes,
+              position: index,
+              location: activity.location || null,
+              location_lat: activity.location_lat || null,
+              location_lon: activity.location_lon || null,
+            };
+          });
 
           await supabase.from('activities').insert(activitiesToInsert);
         }
-      } catch (error) {
-        console.error(`Error generating activities for day ${day.day_index}:`, error);
       }
+    } catch (error) {
+      console.error('Error generating activities:', error);
     }
 
     await loadDays();
@@ -168,6 +195,14 @@ export function TripEditor({ tripId, onBack, onBackToLanding }: TripEditorProps)
       userId: trip.owner_id,
       metadata: { days_count: totalDays, with_activities: true },
     });
+  };
+
+  const addMinutes = (time: string, minutes: number): string => {
+    const [hours, mins] = time.split(':').map(Number);
+    const totalMinutes = hours * 60 + mins + minutes;
+    const newHours = Math.floor(totalMinutes / 60) % 24;
+    const newMins = totalMinutes % 60;
+    return `${String(newHours).padStart(2, '0')}:${String(newMins).padStart(2, '0')}`;
   };
 
   const toggleDay = (dayId: string) => {
