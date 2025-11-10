@@ -8,6 +8,7 @@ import { PackingListModal } from './PackingListModal';
 import { Toast } from './Toast';
 import { trackEvent } from '../lib/analytics';
 import { Breadcrumb } from './Breadcrumb';
+import { generateActivities } from '../lib/aiService';
 
 type Trip = Database['public']['Tables']['trips']['Row'];
 type Day = Database['public']['Tables']['days']['Row'];
@@ -113,13 +114,60 @@ export function TripEditor({ tripId, onBack, onBackToLanding }: TripEditorProps)
       dayIndex++;
     }
 
-    const { error } = await supabase.from('days').insert(daysList);
+    const { data: insertedDays, error } = await supabase.from('days').insert(daysList).select();
 
-    if (!error) {
-      await loadDays();
+    if (error) {
+      setGenerating(false);
+      return;
     }
 
+    const totalDays = Math.ceil(
+      (new Date(trip.end_date).getTime() - new Date(trip.start_date).getTime()) /
+        (1000 * 60 * 60 * 24)
+    ) + 1;
+
+    for (const day of insertedDays || []) {
+      try {
+        const activitiesData = await generateActivities({
+          destination: trip.primary_destination,
+          trip_type: trip.trip_type,
+          interests: ['culture', 'food'],
+          pace: 'balanced',
+          day_index: day.day_index,
+          total_days: totalDays,
+        });
+
+        if (activitiesData.length > 0) {
+          const activitiesToInsert = activitiesData.map((activity, index) => ({
+            day_id: day.id,
+            title: activity.title,
+            start_time: activity.start_time || null,
+            end_time: activity.end_time || null,
+            duration_minutes: activity.duration_minutes || null,
+            category: activity.category,
+            notes: activity.notes,
+            position: index,
+            location: activity.location || null,
+            location_lat: activity.location_lat || null,
+            location_lon: activity.location_lon || null,
+          }));
+
+          await supabase.from('activities').insert(activitiesToInsert);
+        }
+      } catch (error) {
+        console.error(`Error generating activities for day ${day.day_index}:`, error);
+      }
+    }
+
+    await loadDays();
     setGenerating(false);
+
+    await trackEvent({
+      eventName: 'generate_days',
+      tripId: trip.id,
+      userId: trip.owner_id,
+      metadata: { days_count: totalDays, with_activities: true },
+    });
   };
 
   const toggleDay = (dayId: string) => {
