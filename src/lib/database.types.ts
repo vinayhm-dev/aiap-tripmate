@@ -174,6 +174,35 @@ export interface Database {
           expires_at?: string | null
         }
       }
+      testimonials: {
+        Row: {
+          id: string
+          name: string
+          rating: number
+          comment: string
+          location: string | null
+          approved: boolean
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          rating: number
+          comment: string
+          location?: string | null
+          approved?: boolean
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          rating?: number
+          comment?: string
+          location?: string | null
+          approved?: boolean
+          created_at?: string | null
+        }
+      }
     }
   }
 }
