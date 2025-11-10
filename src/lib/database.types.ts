@@ -128,6 +128,29 @@ export interface Database {
           created_at?: string | null
         }
       }
+      packing_lists: {
+        Row: {
+          id: string
+          trip_id: string
+          content: Json
+          generated_by: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          trip_id: string
+          content: Json
+          generated_by?: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          trip_id?: string
+          content?: Json
+          generated_by?: string
+          created_at?: string | null
+        }
+      }
     }
   }
 }

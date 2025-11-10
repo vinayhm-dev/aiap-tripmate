@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Calendar, MapPin, Sparkles, Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Sparkles, Plus, ChevronDown, ChevronUp, Backpack } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
 import { ActivityModal } from './ActivityModal';
+import { AISuggestionsModal } from './AISuggestionsModal';
+import { PackingListModal } from './PackingListModal';
 
 type Trip = Database['public']['Tables']['trips']['Row'];
 type Day = Database['public']['Tables']['days']['Row'];
@@ -27,6 +29,8 @@ export function TripEditor({ tripId, onBack }: TripEditorProps) {
     dayId: string;
     activity?: Activity;
   } | null>(null);
+  const [showAISuggestions, setShowAISuggestions] = useState(false);
+  const [showPackingList, setShowPackingList] = useState(false);
 
   useEffect(() => {
     loadTrip();
@@ -181,7 +185,27 @@ export function TripEditor({ tripId, onBack }: TripEditorProps) {
         </button>
 
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">{trip.title}</h1>
+          <div className="flex items-start justify-between mb-4">
+            <h1 className="text-4xl font-bold text-gray-900">{trip.title}</h1>
+            {days.length > 0 && (
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowAISuggestions(true)}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2"
+                >
+                  <Sparkles className="w-5 h-5" />
+                  AI Suggestions
+                </button>
+                <button
+                  onClick={() => setShowPackingList(true)}
+                  className="bg-teal-600 hover:bg-teal-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2"
+                >
+                  <Backpack className="w-5 h-5" />
+                  Packing List
+                </button>
+              </div>
+            )}
+          </div>
 
           <div className="flex flex-wrap gap-4 text-gray-600">
             <div className="flex items-center gap-2">
@@ -320,6 +344,25 @@ export function TripEditor({ tripId, onBack }: TripEditorProps) {
             setActivityModal(null);
             loadDays();
           }}
+        />
+      )}
+
+      {showAISuggestions && trip && (
+        <AISuggestionsModal
+          trip={trip}
+          days={days}
+          onClose={() => setShowAISuggestions(false)}
+          onSuccess={() => {
+            setShowAISuggestions(false);
+            loadDays();
+          }}
+        />
+      )}
+
+      {showPackingList && trip && (
+        <PackingListModal
+          trip={trip}
+          onClose={() => setShowPackingList(false)}
         />
       )}
     </div>
