@@ -3,6 +3,7 @@ import { X, Backpack, Sparkles, Check, Plus, Trash2 } from 'lucide-react';
 import { generatePackingList, type PackingCategory } from '../lib/aiService';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
+import { trackEvent } from '../lib/analytics';
 
 type Trip = Database['public']['Tables']['trips']['Row'];
 type PackingList = Database['public']['Tables']['packing_lists']['Row'];
@@ -72,6 +73,13 @@ export function PackingListModal({ trip, onClose }: PackingListModalProps) {
     if (!error && data) {
       setPackingList(data);
       setContent(generatedContent);
+
+      await trackEvent({
+        eventName: 'packing_list_generate',
+        tripId: trip.id,
+        userId: trip.owner_id,
+        metadata: { destination: trip.primary_destination, duration: durationDays },
+      });
     }
 
     setLoading(false);
@@ -175,8 +183,17 @@ export function PackingListModal({ trip, onClose }: PackingListModalProps) {
               disabled={loading}
               className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-semibold px-8 py-3 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
             >
-              <Sparkles className="w-5 h-5" />
-              {loading ? 'Generating...' : 'Generate Packing List'}
+              {loading ? (
+                <>
+                  <div className="inline-block animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  Generate Packing List
+                </>
+              )}
             </button>
           </div>
         ) : (

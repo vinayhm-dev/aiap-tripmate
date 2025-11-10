@@ -3,6 +3,7 @@ import { X, Sparkles, Check } from 'lucide-react';
 import { generateActivities, type ActivitySuggestion } from '../lib/aiService';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
+import { trackEvent } from '../lib/analytics';
 
 type Trip = Database['public']['Tables']['trips']['Row'];
 type Day = Database['public']['Tables']['days']['Row'];
@@ -66,6 +67,13 @@ export function AISuggestionsModal({
     setSelectedActivities(new Set(activitiesData.map((_, i) => i)));
     setShowResults(true);
     setLoading(false);
+
+    await trackEvent({
+      eventName: 'ai_generate',
+      tripId: trip.id,
+      userId: trip.owner_id,
+      metadata: { type: 'activities', pace, interests: selectedInterests },
+    });
   };
 
   const toggleActivity = (index: number) => {
@@ -221,8 +229,17 @@ export function AISuggestionsModal({
               disabled={loading || selectedInterests.length === 0}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              <Sparkles className="w-5 h-5" />
-              {loading ? 'Generating...' : 'Generate Activities'}
+              {loading ? (
+                <>
+                  <div className="inline-block animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  Generate Activities
+                </>
+              )}
             </button>
           </div>
         ) : (
@@ -291,8 +308,17 @@ export function AISuggestionsModal({
                 disabled={loading || selectedActivities.size === 0}
                 className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                <Check className="w-5 h-5" />
-                {loading ? 'Adding...' : `Add ${selectedActivities.size} Selected`}
+                {loading ? (
+                  <>
+                    <div className="inline-block animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-5 h-5" />
+                    Add {selectedActivities.size} Selected
+                  </>
+                )}
               </button>
             </div>
           </div>

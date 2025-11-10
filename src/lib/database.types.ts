@@ -203,6 +203,32 @@ export interface Database {
           created_at?: string | null
         }
       }
+      logs: {
+        Row: {
+          id: string
+          event_name: string
+          trip_id: string | null
+          user_id: string | null
+          metadata: Json | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          event_name: string
+          trip_id?: string | null
+          user_id?: string | null
+          metadata?: Json | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          event_name?: string
+          trip_id?: string | null
+          user_id?: string | null
+          metadata?: Json | null
+          created_at?: string | null
+        }
+      }
     }
   }
 }

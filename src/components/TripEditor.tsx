@@ -5,6 +5,8 @@ import type { Database } from '../lib/database.types';
 import { ActivityModal } from './ActivityModal';
 import { AISuggestionsModal } from './AISuggestionsModal';
 import { PackingListModal } from './PackingListModal';
+import { Toast } from './Toast';
+import { trackEvent } from '../lib/analytics';
 
 type Trip = Database['public']['Tables']['trips']['Row'];
 type Day = Database['public']['Tables']['days']['Row'];
@@ -34,6 +36,7 @@ export function TripEditor({ tripId, onBack }: TripEditorProps) {
   const [shareLink, setShareLink] = useState<string>('');
   const [showShareModal, setShowShareModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
     loadTrip();
@@ -184,9 +187,15 @@ export function TripEditor({ tripId, onBack }: TripEditorProps) {
       });
 
     if (!error) {
+      await trackEvent({
+        eventName: 'share_create',
+        tripId,
+        userId: trip?.owner_id,
+      });
       const url = `${window.location.origin}/s/${slug}`;
       setShareLink(url);
       setShowShareModal(true);
+      setToast({ message: 'Share link created!', type: 'success' });
     }
   };
 
@@ -474,6 +483,14 @@ export function TripEditor({ tripId, onBack }: TripEditorProps) {
             </div>
           </div>
         </div>
+      )}
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { trackEvent } from '../lib/analytics';
 
 interface NewTripModalProps {
   userId: string;
@@ -51,6 +52,11 @@ export function NewTripModal({ userId, onClose, onSuccess }: NewTripModalProps) 
     }
 
     if (data) {
+      await trackEvent({
+        eventName: 'trip_create',
+        tripId: data.id,
+        userId,
+      });
       onSuccess(data.id);
     }
   };
