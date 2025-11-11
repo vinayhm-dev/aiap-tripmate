@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { LandingPage } from './components/LandingPage';
+import { LoginPage } from './components/LoginPage';
 import { Dashboard } from './components/Dashboard';
 import { TripEditor } from './components/TripEditor';
 import { SharePage } from './components/SharePage';
 import { supabase } from './lib/supabase';
 
-type Page = 'landing' | 'dashboard' | 'trip' | 'share';
+type Page = 'landing' | 'login' | 'dashboard' | 'trip' | 'share';
 
 function App() {
   const [page, setPage] = useState<Page>('landing');
@@ -57,7 +58,11 @@ function App() {
     setIsInitializingUser(false);
   };
 
-  const handleGetStarted = async () => {
+  const handleGetStarted = () => {
+    setPage('login');
+  };
+
+  const handleLogin = async () => {
     if (!userId) {
       await initializeUser();
     }
@@ -84,6 +89,10 @@ function App() {
 
   if (page === 'landing') {
     return <LandingPage onGetStarted={handleGetStarted} />;
+  }
+
+  if (page === 'login') {
+    return <LoginPage onLogin={handleLogin} />;
   }
 
   if (page === 'dashboard') {

@@ -9,6 +9,7 @@ import { Toast } from './Toast';
 import { trackEvent } from '../lib/analytics';
 import { Breadcrumb } from './Breadcrumb';
 import { generateActivities } from '../lib/aiService';
+import { Logo } from './Logo';
 
 type Trip = Database['public']['Tables']['trips']['Row'];
 type Day = Database['public']['Tables']['days']['Row'];
@@ -310,6 +311,10 @@ export function TripEditor({ tripId, onBack, onBackToLanding }: TripEditorProps)
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
       <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="mb-6">
+          <Logo size="md" />
+        </div>
+
         <Breadcrumb
           items={[
             { label: 'Home', onClick: onBackToLanding },

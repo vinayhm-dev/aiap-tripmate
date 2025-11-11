@@ -3,6 +3,7 @@ import { Calendar, MapPin, Plane } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
 import { Breadcrumb } from './Breadcrumb';
+import { Logo } from './Logo';
 
 type Trip = Database['public']['Tables']['trips']['Row'];
 type Day = Database['public']['Tables']['days']['Row'];
@@ -130,6 +131,10 @@ export function SharePage({ slug }: SharePageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
       <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="mb-6">
+          <Logo size="md" />
+        </div>
+
         <Breadcrumb
           items={[
             { label: 'Shared Trip' },

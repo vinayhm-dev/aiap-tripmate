@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Plus, Calendar, MapPin, ArrowRight, Plane, Sparkles, Trash2 } from 'lucide-react';
+import { Plus, Calendar, MapPin, ArrowRight, Sparkles, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
 import { NewTripModal } from './NewTripModal';
 import { Toast } from './Toast';
 import { trackEvent } from '../lib/analytics';
 import { Breadcrumb } from './Breadcrumb';
+import { Logo } from './Logo';
 
 type Trip = Database['public']['Tables']['trips']['Row'];
 
@@ -155,9 +156,7 @@ export function Dashboard({ userId, onOpenTrip, onBackToLanding }: DashboardProp
         />
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
-              <Plane className="w-6 h-6 text-white" />
-            </div>
+            <Logo size="md" />
             <div>
               <h1 className="text-3xl font-bold text-gray-900">My Trips</h1>
               <p className="text-gray-600">Manage your travel itineraries</p>

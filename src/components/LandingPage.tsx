@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Plane, Star, MessageSquare } from 'lucide-react';
+import { Star, MessageSquare } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
+import { Logo } from './Logo';
 
 type Testimonial = Database['public']['Tables']['testimonials']['Row'];
 
@@ -82,9 +83,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <div className="flex justify-center mb-8">
-            <div className="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <Plane className="w-10 h-10 text-white" />
-            </div>
+            <Logo size="lg" />
           </div>
 
           <h1 className="text-6xl font-bold text-gray-900 mb-6">
