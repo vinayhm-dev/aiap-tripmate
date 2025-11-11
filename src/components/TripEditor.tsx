@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Calendar, MapPin, Sparkles, Plus, ChevronDown, ChevronUp, Backpack, Share2, Printer, Check, Copy, X } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Sparkles, Plus, ChevronDown, ChevronUp, Backpack, Share2, Printer, Check, Copy, X, LogOut } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
 import { ActivityModal } from './ActivityModal';
@@ -19,13 +19,14 @@ interface TripEditorProps {
   tripId: string;
   onBack: () => void;
   onBackToLanding: () => void;
+  onSignOut: () => void;
 }
 
 interface DayWithActivities extends Day {
   activities: Activity[];
 }
 
-export function TripEditor({ tripId, onBack, onBackToLanding }: TripEditorProps) {
+export function TripEditor({ tripId, onBack, onBackToLanding, onSignOut }: TripEditorProps) {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [days, setDays] = useState<DayWithActivities[]>([]);
   const [loading, setLoading] = useState(true);
@@ -311,8 +312,15 @@ export function TripEditor({ tripId, onBack, onBackToLanding }: TripEditorProps)
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="mb-6">
+        <div className="mb-6 flex items-center justify-between">
           <Logo size="md" />
+          <button
+            onClick={onSignOut}
+            className="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2"
+          >
+            <LogOut className="w-5 h-5" />
+            Sign Out
+          </button>
         </div>
 
         <Breadcrumb

@@ -83,6 +83,12 @@ function App() {
     setPage('landing');
   };
 
+  const handleSignOut = () => {
+    setUserId('');
+    setSelectedTripId('');
+    setPage('login');
+  };
+
   if (page === 'share' && shareSlug) {
     return <SharePage slug={shareSlug} />;
   }
@@ -103,7 +109,7 @@ function App() {
         </div>
       );
     }
-    return <Dashboard userId={userId} onOpenTrip={handleOpenTrip} onBackToLanding={handleBackToLanding} />;
+    return <Dashboard userId={userId} onOpenTrip={handleOpenTrip} onBackToLanding={handleBackToLanding} onSignOut={handleSignOut} />;
   }
 
   if (page === 'trip' && selectedTripId) {
@@ -114,7 +120,7 @@ function App() {
         </div>
       );
     }
-    return <TripEditor tripId={selectedTripId} onBack={handleBackToDashboard} onBackToLanding={handleBackToLanding} />;
+    return <TripEditor tripId={selectedTripId} onBack={handleBackToDashboard} onBackToLanding={handleBackToLanding} onSignOut={handleSignOut} />;
   }
 
   return null;

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Calendar, MapPin, ArrowRight, Sparkles, Trash2 } from 'lucide-react';
+import { Plus, Calendar, MapPin, ArrowRight, Sparkles, Trash2, LogOut } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
 import { NewTripModal } from './NewTripModal';
@@ -14,9 +14,10 @@ interface DashboardProps {
   userId: string;
   onOpenTrip: (tripId: string) => void;
   onBackToLanding: () => void;
+  onSignOut: () => void;
 }
 
-export function Dashboard({ userId, onOpenTrip, onBackToLanding }: DashboardProps) {
+export function Dashboard({ userId, onOpenTrip, onBackToLanding, onSignOut }: DashboardProps) {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewTripModal, setShowNewTripModal] = useState(false);
@@ -164,6 +165,13 @@ export function Dashboard({ userId, onOpenTrip, onBackToLanding }: DashboardProp
           </div>
 
           <div className="flex gap-3">
+            <button
+              onClick={onSignOut}
+              className="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-3 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2"
+            >
+              <LogOut className="w-5 h-5" />
+              Sign Out
+            </button>
             <button
               onClick={createSampleTrip}
               disabled={creatingSample}
